@@ -50,10 +50,15 @@ void handleBootButton() {
   bootButtonPollLongPress();
 #if defined(BOARD_CROWPANEL_146)
   const int rotation = encoderPollRotation();
-  if (rotation > 0) {
-    onRangeTap();
-  } else if (rotation < 0) {
-    ui::radar::rangePrev();
+  if (rotation != 0) {
+    const int steps = rotation > 0 ? rotation : -rotation;
+    for (int i = 0; i < steps; ++i) {
+      if (rotation > 0) {
+        ui::radar::rangeNext();
+      } else {
+        ui::radar::rangePrev();
+      }
+    }
     char range_label[12];
     ui::radar::formatCurrentRing3Label(range_label, sizeof(range_label));
     Serial.printf("Range: %s (outer ~%.0f km)\n", range_label,
@@ -67,6 +72,11 @@ void handleBootButton() {
     onRangeTap();
   }
 #endif
+}
+
+void serviceBackground() {
+  handleBootButton();
+  wifiLoop();
 }
 
 void fetchAndDrawAircraft() {
@@ -98,7 +108,7 @@ void setup() {
   }
   services::location::init();
   ui::radar::rangeInit();
-  services::adsb::setPollFn(wifiLoop);
+  services::adsb::setPollFn(serviceBackground);
 
   if (wifiSetupConnect()) {
     showRadarIfConnected();

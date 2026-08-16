@@ -113,7 +113,7 @@ Edit **`include/config.h`** for hardware and behavior:
 |------|----------------|
 | Portal | `kPortalApName`, `kPortalIp`, `kPortalHostname` / `kPortalHostUrl` (mDNS; needs `-DWM_MDNS` in `platformio.ini`) |
 | Wi‑Fi timing | connect attempts, reconnect grace, portal timeout (`0` = no timeout) |
-| Input | `kResetButtonPin` (BOOT on Super Mini, encoder switch on CrowPanel), `kBootResetHoldMs`, `kBootTapMinMs`; CrowPanel adds `kEncoderAPin`/`kEncoderBPin`/`kEncoderSwPin`, `kEncoderDebounceMs` |
+| Input | `kResetButtonPin` (BOOT on Super Mini, encoder switch on CrowPanel), `kBootResetHoldMs`, `kBootTapMinMs`; CrowPanel adds `kEncoderAPin`/`kEncoderBPin`/`kEncoderSwPin` |
 | Display SPI | pins, `kDisplayInvert`, `kDisplayRgbOrder`, `kDisplaySpiWriteHz` |
 | Default location | `kDefaultRadarLat`, `kDefaultRadarLon` (until portal overrides) |
 | ADS-B | `kAdsbFetchIntervalMs`, `kAdsbShowGroundAircraft` |

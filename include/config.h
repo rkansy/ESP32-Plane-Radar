@@ -53,7 +53,6 @@ constexpr gpio_num_t kDisplayBacklightPin = GPIO_NUM_46;
 constexpr gpio_num_t kEncoderAPin = GPIO_NUM_45;
 constexpr gpio_num_t kEncoderBPin = GPIO_NUM_42;
 constexpr gpio_num_t kEncoderSwPin = GPIO_NUM_41;
-constexpr unsigned long kEncoderDebounceMs = 3UL;
 
 /** Pin polled for the long-press WiFi reset gesture. */
 constexpr gpio_num_t kResetButtonPin = kEncoderSwPin;

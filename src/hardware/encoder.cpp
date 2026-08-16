@@ -7,8 +7,23 @@
 #include <Arduino.h>
 
 namespace {
-int s_last_a = HIGH;
-unsigned long s_last_read_ms = 0;
+// Written only from the ISR; read/cleared from encoderPollRotation() with
+// interrupts briefly disabled, so plain volatiles are sufficient here.
+volatile int s_last_a = HIGH;
+volatile int32_t s_accum = 0;
+
+// Interrupt-driven: loop() can be busy for a while (HTTP fetch, full redraw),
+// so polling digitalRead() from loop() alone misses fast rotations.
+void IRAM_ATTR onEncoderAChange() {
+  const int a = digitalRead(config::kEncoderAPin);
+  if (a == s_last_a) {
+    return;
+  }
+  if (s_last_a == HIGH && a == LOW) {
+    s_accum += (digitalRead(config::kEncoderBPin) == HIGH) ? -1 : 1;
+  }
+  s_last_a = a;
+}
 }  // namespace
 
 void encoderInit() {
@@ -16,27 +31,16 @@ void encoderInit() {
   pinMode(config::kEncoderBPin, INPUT_PULLUP);
   pinMode(config::kEncoderSwPin, INPUT_PULLUP);
   s_last_a = digitalRead(config::kEncoderAPin);
+  attachInterrupt(digitalPinToInterrupt(static_cast<uint8_t>(config::kEncoderAPin)),
+                  onEncoderAChange, CHANGE);
 }
 
 int encoderPollRotation() {
-  const unsigned long now = millis();
-  if (now - s_last_read_ms < config::kEncoderDebounceMs) {
-    return 0;
-  }
-
-  const int a = digitalRead(config::kEncoderAPin);
-  if (a == s_last_a) {
-    return 0;
-  }
-  s_last_read_ms = now;
-
-  // Quadrature: on A's falling edge, B's level gives direction.
-  int delta = 0;
-  if (s_last_a == HIGH && a == LOW) {
-    delta = (digitalRead(config::kEncoderBPin) == HIGH) ? -1 : 1;
-  }
-  s_last_a = a;
-  return delta;
+  noInterrupts();
+  const int32_t accum = s_accum;
+  s_accum = 0;
+  interrupts();
+  return static_cast<int>(accum);
 }
 
 #else

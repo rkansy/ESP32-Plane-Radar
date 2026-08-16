@@ -1,6 +1,6 @@
 #pragma once
 
-/** GPIO setup; call once early in setup(). No-op on boards without an encoder. */
+/** GPIO + interrupt setup; call once early in setup(). No-op on boards without an encoder. */
 void encoderInit();
-/** Detents moved since the last call: -1, 0, or +1 (call once per loop iteration). */
+/** Net detents moved since the last call (may be >1 if loop() was busy); 0 if none. */
 int encoderPollRotation();
