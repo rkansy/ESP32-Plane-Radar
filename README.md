@@ -4,7 +4,12 @@
 
 **3D printed case (STL + assembly):** [MakerWorld](https://makerworld.com/en/models/2872376-esp32-plane-radar-live-ads-b-on-a-round-display#profileId-3207083) · **Firmware:** [Releases](https://github.com/MatixYo/ESP32-Plane-Radar/releases)
 
-Firmware for an **ESP32-C3 Super Mini** and a **1.28″ round GC9A01** display (240×240). Shows a circular **ADS-B radar** around your configured location, with **WiFiManager** for first-time setup.
+Firmware for a round ADS-B radar display, supporting two hardware targets:
+
+- **ESP32-C3 Super Mini** + **1.28″ round GC9A01** display (240×240) — PlatformIO env `supermini`
+- **CrowPanel ESP32-S3 1.46″ round** with **ST77961** display (360×360) and a rotary encoder — PlatformIO env `crowpanel_146`
+
+Shows a circular **ADS-B radar** around your configured location, with **WiFiManager** for first-time setup.
 
 ## What it does
 
@@ -13,7 +18,9 @@ Firmware for an **ESP32-C3 Super Mini** and a **1.28″ round GC9A01** display (
 
 After Wi‑Fi is saved, the device reconnects automatically; the radar runs in the main loop with periodic ADS-B updates (~5 s).
 
-## Controls (BOOT, GPIO 9, active LOW)
+## Controls
+
+### Super Mini — BOOT button (GPIO 9, active LOW)
 
 | Action | Effect |
 |--------|--------|
@@ -21,6 +28,15 @@ After Wi‑Fi is saved, the device reconnects automatically; the radar runs in t
 | **Hold 3 s** | Clear Wi‑Fi, location, and units; reboot into setup portal |
 
 During setup you can also hold BOOT at power-on to force a credential reset (same as the long press).
+
+### CrowPanel — rotary encoder
+
+| Action | Effect |
+|--------|--------|
+| **Rotate** | Cycle range preset (5 → 10 → 15 → 25 km); saved to flash |
+| **Hold switch 3 s** | Clear Wi‑Fi, location, and units; reboot into setup portal |
+
+The encoder's push-switch replaces the BOOT button; a short press (no hold) currently does nothing.
 
 ## Wi‑Fi setup portal
 
@@ -97,10 +113,12 @@ Edit **`include/config.h`** for hardware and behavior:
 |------|----------------|
 | Portal | `kPortalApName`, `kPortalIp`, `kPortalHostname` / `kPortalHostUrl` (mDNS; needs `-DWM_MDNS` in `platformio.ini`) |
 | Wi‑Fi timing | connect attempts, reconnect grace, portal timeout (`0` = no timeout) |
-| BOOT | `kBootPin`, `kBootResetHoldMs`, `kBootTapMinMs` |
+| Input | `kResetButtonPin` (BOOT on Super Mini, encoder switch on CrowPanel), `kBootResetHoldMs`, `kBootTapMinMs`; CrowPanel adds `kEncoderAPin`/`kEncoderBPin`/`kEncoderSwPin`, `kEncoderDebounceMs` |
 | Display SPI | pins, `kDisplayInvert`, `kDisplayRgbOrder`, `kDisplaySpiWriteHz` |
 | Default location | `kDefaultRadarLat`, `kDefaultRadarLon` (until portal overrides) |
 | ADS-B | `kAdsbFetchIntervalMs`, `kAdsbShowGroundAircraft` |
+
+Pin values and board-specific behavior are selected at compile time by the `BOARD_SUPERMINI` / `BOARD_CROWPANEL_146` build flags set per PlatformIO env (see `platformio.ini`).
 
 Range presets: `include/ui/radar_range.h` (`kRangePresets`).
 
@@ -151,6 +169,26 @@ src/
 | SCL (SCLK) | GPIO **4** |
 | BOOT (user) | GPIO **9** |
 
+## Wiring (ST77961 ↔ CrowPanel ESP32-S3)
+
+The CrowPanel 1.46″ is a single assembled board — these pins are already wired internally; listed for reference / `config.h`.
+
+| Signal | ESP32-S3 |
+|--------|----------|
+| RST | GPIO **14** |
+| CS | GPIO **9** |
+| DC | GPIO **3** |
+| MOSI (3-wire SPI) | GPIO **11** |
+| SCLK | GPIO **10** |
+| LCD power rail 1 | GPIO **1** |
+| LCD power rail 2 | GPIO **2** |
+| Backlight | GPIO **46** |
+| Encoder A | GPIO **45** |
+| Encoder B | GPIO **42** |
+| Encoder switch | GPIO **41** |
+
+SPI bus: `SPI2_HOST`, 3-wire mode, 80 MHz write / 20 MHz read. Panel is 360×360, `rgb_order=true`, `invert=false`. Full config: `include/config.h` and `include/hardware/lgfx_config.hpp`.
+
 ## Build
 
 ```bash
@@ -158,9 +196,13 @@ pio run -t upload
 pio device monitor
 ```
 
-- PlatformIO env: **`supermini`**
+- PlatformIO env: **`supermini`** (default target above); use **`crowpanel_146`** for the CrowPanel ESP32-S3:
+  ```bash
+  pio run -e crowpanel_146 -t upload
+  pio device monitor -e crowpanel_146
+  ```
 - Serial: **115200** baud
-- USB CDC on boot enabled in `platformio.ini` for the Super Mini
+- USB CDC on boot enabled in `platformio.ini` for both boards
 
 ### Web-flashable release image
 
@@ -204,6 +246,6 @@ The release workflow builds firmware in CI and attaches the merged image to the 
 
 ## Dependencies
 
-- [LovyanGFX](https://github.com/lovyan03/LovyanGFX)
+- [LovyanGFX](https://github.com/lovyan03/LovyanGFX) — fetched from the PlatformIO registry for `supermini`; `crowpanel_146` instead uses a vendored copy in `vendor/crowpanel_146/` (the registry release doesn't build against this board's newer ESP-IDF, and produced a garbled ST77961 screen)
 - [WiFiManager](https://github.com/tzapu/WiFiManager)
 - [ArduinoJson](https://github.com/bblanchon/ArduinoJson)
