@@ -11,7 +11,7 @@
 #include "hardware/display.h"
 #include "hardware/display_font.h"
 
-namespace fonts = lgfx::v1::fonts;
+namespace uifonts = ::lgfx::v1::fonts;
 
 namespace {
 
@@ -20,7 +20,8 @@ const int kCenterX = config::kDisplayWidth / 2;
 const int kCenterY = config::kDisplayHeight / 2;
 
 constexpr int kSpinnerDotCount = 10;
-constexpr int kSpinnerRadius = 113;
+// Proportional to the 240px baseline design so both panel sizes look the same.
+constexpr int kSpinnerRadius = config::kDisplayWidth * 113 / 240;
 constexpr int kSpinnerDotRadius = 2;
 constexpr int kSpinnerEraseRadius = 4;
 constexpr float kSpinnerStepDeg = 6.0f;
@@ -33,18 +34,18 @@ struct SpinnerDot {
 
 char s_connecting_ssid[33];
 char s_ssid_line[33];
-constexpr int kConnectingTextMaxWidthPx = 220;
+constexpr int kConnectingTextMaxWidthPx = config::kDisplayWidth * 220 / 240;
 float s_spinner_angle_deg = -90.0f;
 SpinnerDot s_spinner_dots[kSpinnerDotCount];
 bool s_connecting_text_drawn = false;
 
-constexpr auto& kGfxTitle = fonts::FreeSans18pt7b;
-constexpr auto& kGfxBody = fonts::FreeSans12pt7b;
-constexpr auto& kGfxDetail = fonts::Font2;
-constexpr auto& kPortalGfxTitle = fonts::FreeSansBold18pt7b;
-constexpr auto& kPortalGfxBody = fonts::FreeSansBold12pt7b;
-constexpr auto& kPortalGfxEmphasis = fonts::FreeSansBold18pt7b;
-constexpr auto& kConnectingGfxDetail = fonts::FreeSans9pt7b;
+constexpr auto& kGfxTitle = uifonts::FreeSans18pt7b;
+constexpr auto& kGfxBody = uifonts::FreeSans12pt7b;
+constexpr auto& kGfxDetail = uifonts::Font2;
+constexpr auto& kPortalGfxTitle = uifonts::FreeSansBold18pt7b;
+constexpr auto& kPortalGfxBody = uifonts::FreeSansBold12pt7b;
+constexpr auto& kPortalGfxEmphasis = uifonts::FreeSansBold18pt7b;
+constexpr auto& kConnectingGfxDetail = uifonts::FreeSans9pt7b;
 
 struct TextLine {
   const char* text;

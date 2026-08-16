@@ -26,7 +26,7 @@ bool s_long_press_handled = false;
 bool s_boot_interrupt_attached = false;
 
 void IRAM_ATTR onBootButtonIsr() {
-  const bool down = digitalRead(config::kBootPin) == LOW;
+  const bool down = digitalRead(config::kResetButtonPin) == LOW;
   const unsigned long now = millis();
   portENTER_CRITICAL_ISR(&s_boot_mux);
   if (down) {
@@ -43,11 +43,11 @@ void IRAM_ATTR onBootButtonIsr() {
 }
 
 void initBootButton() {
-  pinMode(config::kBootPin, INPUT_PULLUP);
+  pinMode(config::kResetButtonPin, INPUT_PULLUP);
   if (s_boot_interrupt_attached) {
     return;
   }
-  attachInterrupt(digitalPinToInterrupt(static_cast<uint8_t>(config::kBootPin)),
+  attachInterrupt(digitalPinToInterrupt(static_cast<uint8_t>(config::kResetButtonPin)),
                   onBootButtonIsr, CHANGE);
   s_boot_interrupt_attached = true;
 }
@@ -363,7 +363,7 @@ bool wifiShowsSetupScreenOnBoot() {
 }
 
 bool wifiBootButtonPressed() {
-  return digitalRead(config::kBootPin) == LOW;
+  return digitalRead(config::kResetButtonPin) == LOW;
 }
 
 void bootButtonInit() { initBootButton(); }

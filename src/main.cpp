@@ -14,6 +14,10 @@
 #include "ui/radar_range.h"
 #include "ui/status_screens.h"
 
+#if defined(BOARD_CROWPANEL_146)
+#include "hardware/encoder.h"
+#endif
+
 namespace {
 
 bool g_radar_visible = false;
@@ -44,9 +48,25 @@ void onRangeTap() {
 
 void handleBootButton() {
   bootButtonPollLongPress();
+#if defined(BOARD_CROWPANEL_146)
+  const int rotation = encoderPollRotation();
+  if (rotation > 0) {
+    onRangeTap();
+  } else if (rotation < 0) {
+    ui::radar::rangePrev();
+    char range_label[12];
+    ui::radar::formatCurrentRing3Label(range_label, sizeof(range_label));
+    Serial.printf("Range: %s (outer ~%.0f km)\n", range_label,
+                  ui::radar::rangeCurrent().outer_km);
+    if (g_radar_visible && WiFi.status() == WL_CONNECTED) {
+      ui::radarDisplayDraw();
+    }
+  }
+#else
   if (bootButtonConsumeTap()) {
     onRangeTap();
   }
+#endif
 }
 
 void fetchAndDrawAircraft() {
@@ -69,6 +89,9 @@ void setup() {
   Serial.println("Plane Radar");
 
   bootButtonInit();
+#if defined(BOARD_CROWPANEL_146)
+  encoderInit();
+#endif
   displayInit();
   if (wifiShowsSetupScreenOnBoot()) {
     statusScreenPortal();

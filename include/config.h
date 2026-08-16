@@ -23,11 +23,46 @@ constexpr unsigned long kWifiDownGraceMs = 4000;
 /** Minimum interval between background reconnect tries. */
 constexpr unsigned long kWifiReconnectIntervalMs = 15000;
 
-// --- BOOT button (ESP32-C3 Super Mini, active LOW) ---
-constexpr gpio_num_t kBootPin = GPIO_NUM_9;
 constexpr unsigned long kBootResetHoldMs = 3000UL;
 /** Ignore BOOT taps shorter than this (debounce). */
 constexpr unsigned long kBootTapMinMs = 40UL;
+
+#if defined(BOARD_CROWPANEL_146)
+
+// --- Display: CrowPanel ESP32-S3 1.46" round ST77961 360×360 (SPI, 3-wire) ---
+constexpr gpio_num_t kDisplayPinRst = GPIO_NUM_14;
+constexpr gpio_num_t kDisplayPinCs = GPIO_NUM_9;
+constexpr gpio_num_t kDisplayPinDc = GPIO_NUM_3;
+constexpr gpio_num_t kDisplayPinMosi = GPIO_NUM_11;
+constexpr gpio_num_t kDisplayPinSclk = GPIO_NUM_10;
+
+constexpr int kDisplayWidth = 360;
+constexpr int kDisplayHeight = 360;
+
+constexpr uint32_t kDisplaySpiWriteHz = 80000000;
+constexpr uint32_t kDisplaySpiReadHz = 20000000;
+constexpr bool kDisplayInvert = false;
+constexpr bool kDisplayRgbOrder = true;
+
+// --- Display power/backlight (must be driven before panel init) ---
+constexpr gpio_num_t kDisplayPwr1Pin = GPIO_NUM_1;
+constexpr gpio_num_t kDisplayPwr2Pin = GPIO_NUM_2;
+constexpr gpio_num_t kDisplayBacklightPin = GPIO_NUM_46;
+
+// --- Rotary encoder (replaces BOOT button: rotate = change range, switch long-press = WiFi reset) ---
+constexpr gpio_num_t kEncoderAPin = GPIO_NUM_45;
+constexpr gpio_num_t kEncoderBPin = GPIO_NUM_42;
+constexpr gpio_num_t kEncoderSwPin = GPIO_NUM_41;
+constexpr unsigned long kEncoderDebounceMs = 3UL;
+
+/** Pin polled for the long-press WiFi reset gesture. */
+constexpr gpio_num_t kResetButtonPin = kEncoderSwPin;
+
+#else
+
+// --- BOOT button (ESP32-C3 Super Mini, active LOW) ---
+constexpr gpio_num_t kBootPin = GPIO_NUM_9;
+constexpr gpio_num_t kResetButtonPin = kBootPin;
 
 // --- Display: GC9A01 1.28" round 240×240 (SPI) ---
 constexpr gpio_num_t kDisplayPinRst = GPIO_NUM_0;
@@ -43,6 +78,8 @@ constexpr uint32_t kDisplaySpiWriteHz = 40000000;
 // GC9A01 modules often need invert + BGR for correct black/green output
 constexpr bool kDisplayInvert = true;
 constexpr bool kDisplayRgbOrder = true;
+
+#endif  // BOARD_CROWPANEL_146
 
 // --- Radar center defaults (overridden via WiFi setup portal) ---
 constexpr double kDefaultRadarLat = 52.3676;

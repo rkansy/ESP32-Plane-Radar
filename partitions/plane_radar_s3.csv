@@ -1,0 +1,6 @@
+# 16 MB flash — single large app (no OTA fallback, no SPIFFS). CrowPanel ESP32-S3.
+# Name,   Type, SubType, Offset,   Size,     Flags
+nvs,      data, nvs,     0x9000,   0x5000,
+otadata,  data, ota,     0xe000,   0x2000,
+app0,     app,  ota_0,   0x10000,  0xE80000,
+coredump, data, coredump,0xE90000, 0x10000,
